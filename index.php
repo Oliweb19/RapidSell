@@ -185,21 +185,8 @@
                               $total_dolares = $row_total['total_dolares'];
                             ?>
                             <tr>
-                              <td colspan="1" class="cart-total"><h3>Total: <?php echo $total_dolares; ?>$</h3></td>
-                              <!--<?php
-                                include_once 'conexion_BD.php';
-                                $sql_ganancia = "SELECT SUM((p.ganancia / p.stock) * c.cantidad_producto) AS ganancia_hoy
-                                                 FROM compra c
-                                                 JOIN productos p ON c.id_producto = p.id_producto
-                                                 WHERE c.fecha_compra = '$fecha'";
-                                  $res_ganancia = mysqli_query($conexion, $sql_ganancia);
-                                  $ganancia_hoy = 0;
-                                  if($row = mysqli_fetch_assoc($res_ganancia)){
-                                      $ganancia_hoy = $row['ganancia_hoy'] ? $row['ganancia_hoy'] : 0;
-                                  }
-                              ?>
-                              <td colspan="2" class="cart-total"><h3>Ganancia: <?php echo number_format($ganancia_hoy, 2); ?>$</h3></td>
-                              -->
+                              <td colspan="1" class="cart-total"><h3>Total: <?php echo number_format($total_dolares, 3); ?>$</h3></td>
+                              <!-- ...Limite el numero de decimales a 3... -->
                             </tr>
                             </tfoot>
                           </table>
@@ -246,20 +233,8 @@
                               $total_dolares = $row_total['total_dolares'];
                             ?>
                             <tr>
-                              <td colspan="1" class="cart-total"><h3>Total: <?php echo number_format($total_dolares, 2); ?>$</h3></td>
-                              <!--<?php
-                                include_once 'conexion_BD.php';
-                                $sql_ganancia = "SELECT SUM((p.ganancia / p.stock) * c.cantidad_producto) AS ganancia_hoy
-                                                 FROM compra c
-                                                 JOIN productos p ON c.id_producto = p.id_producto
-                                                 WHERE c.fecha_compra = '$date'";
-                                  $res_ganancia = mysqli_query($conexion, $sql_ganancia);
-                                  $ganancia_hoy = 0;
-                                  if($row = mysqli_fetch_assoc($res_ganancia)){
-                                      $ganancia_hoy = $row['ganancia_hoy'] ? $row['ganancia_hoy'] : 0;
-                                  }
-                              ?>
-                              <td colspan="2" class="cart-total"><h3>Ganancia: <?php echo number_format($ganancia_hoy, 2); ?>$</h3></td>-->
+                              <td colspan="1" class="cart-total"><h3>Total: <?php echo number_format($total_dolares, 3); ?>$</h3></td>
+                              <!-- ...Limite el numero de decimales a 3... -->
                             </tr>
                             </tfoot>
                           </table>
