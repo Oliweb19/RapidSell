@@ -85,6 +85,23 @@
             </div>
             <div class="bars-products">
                 <h2>Todos los Productos</h2>
+                <?php
+                  // Paginador
+                  $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+                  $por_pagina = 10;
+                  $inicio = ($pagina - 1) * $por_pagina;
+
+                  // Contar total de productos
+                  $sql_total = "SELECT COUNT(*) as total FROM productos WHERE estatus = 1";
+                  $res_total = mysqli_query($conexion, $sql_total);
+                  $row_total = mysqli_fetch_assoc($res_total);
+                  $total_productos = $row_total['total'];
+                  $total_paginas = ceil($total_productos / $por_pagina);
+
+                  // Obtener productos de la página actual
+                  $sql = "SELECT * FROM productos WHERE estatus = 1 LIMIT $inicio, $por_pagina";
+                  $resultado = mysqli_query($conexion, $sql);
+                ?>
                 <table class="index-tabla">
                     <thead>
                       <tr>
@@ -97,13 +114,7 @@
                         <th>Acciones</th>
                       </tr>
                     </thead>
-                    <?php 
-                      $sql = "SELECT * FROM productos 
-                      WHERE estatus = 1";
-                      $resultado = mysqli_query($conexion,$sql); 
-
-                      while($mostrar = mysqli_fetch_array($resultado)){ 
-                    ?>
+                    <?php while($mostrar = mysqli_fetch_array($resultado)){ ?>
                     <tbody>
                       <tr>
                         <td><?php echo $mostrar['cerial']; ?></td>
@@ -118,10 +129,21 @@
                         </td>
                       </tr>
                     </tbody>
-                    <?php
-                      }
-                    ?>
+                    <?php } ?>
                 </table>
+                <div style="margin-top:20px; text-align:center;">
+                  <?php if($pagina > 1){ ?>
+                    <a href="?pagina=<?php echo $pagina-1; ?>" class="btn-paginador" title="Anterior">
+                      <i class="fa-solid fa-chevron-left paginador-flecha"></i>
+                    </a>
+                  <?php } ?>
+                  <span style="margin:0 10px;">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></span>
+                  <?php if($pagina < $total_paginas){ ?>
+                    <a href="?pagina=<?php echo $pagina+1; ?>" class="btn-paginador" title="Siguiente">
+                      <i class="fa-solid fa-chevron-right paginador-flecha"></i>
+                    </a>
+                  <?php } ?>
+                </div>
             </div>
             <?php
               }

@@ -66,6 +66,27 @@
             </div>
             <div class="bars-products">
                 <h2>Productos de la Compra</h2>
+                <?php
+                    include_once 'conexion_BD.php'; 
+                    $id = $_GET['id'];
+                    $por_pagina = 10;
+                    $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+                    $inicio = ($pagina - 1) * $por_pagina;
+                    // Contar total de productos en la compra
+                    $sql_total = "SELECT COUNT(*) as total FROM compra WHERE id_compra = '$id'";
+                    $res_total = mysqli_query($conexion, $sql_total);
+                    $row_total = mysqli_fetch_assoc($res_total);
+                    $total_productos = $row_total['total'];
+                    $total_paginas = ceil($total_productos / $por_pagina);
+                    // Obtener productos de la página actual
+                    $sql = "SELECT ventas.id_compra, productos.nombre_producto, productos.precio, productos.precio_bs, compra.cantidad_producto, ventas.total_pagar, ventas.total_pagar_bs
+                            FROM ventas
+                            JOIN compra ON ventas.id_compra = compra.id_compra
+                            JOIN productos ON compra.id_producto = productos.id_producto
+                            WHERE compra.id_compra = '$id'
+                            LIMIT $inicio, $por_pagina";
+                    $resultado = mysqli_query($conexion,$sql);
+                ?>
                 <table class="index-tabla">
                     <thead>
                       <tr>
@@ -77,20 +98,11 @@
                       </tr>
                     </thead>
                     <?php
-                        include_once 'conexion_BD.php'; 
-
-                        $fecha = date("d/m/Y");
-                        $id = $_GET['id'];
-  
-                        $sql = "SELECT *
-                        FROM ventas
-                        JOIN compra ON ventas.id_compra = compra.id_compra
-                        JOIN productos ON compra.id_producto = productos.id_producto
-                        AND compra.id_compra = '$id'";
-
-                        $resultado = mysqli_query($conexion,$sql);
-  
+                        $total = 0;
+                        $total1 = 0;
                         while($mostrar = mysqli_fetch_array($resultado)){ 
+                            $total = $mostrar['total_pagar'];
+                            $total1 = $mostrar['total_pagar_bs'];
                     ?>
                     <tbody>
                       <tr>
@@ -102,8 +114,6 @@
                       </tr>
                     </tbody>
                     <?php
-                        $total = $mostrar['total_pagar'];
-                        $total1 = $mostrar['total_pagar_bs'];
                         }
                     ?>
                     <thead>
@@ -112,7 +122,20 @@
                             <th><h3>Total a Pagar en Bs: <?php echo $total1; ?>bs</h3></th>
                         </tr>
                     </thead>
-                  </table>
+                </table>
+                <div style="margin-top:20px; text-align:center;">
+                  <?php if($pagina > 1){ ?>
+                    <a href="?id=<?php echo $id; ?>&pagina=<?php echo $pagina-1; ?>" class="btn-paginador" title="Anterior">
+                      <i class="fa-solid fa-chevron-left" style="font-weight:900;font-size:1.25em;text-shadow:0 0 1px #222;"></i>
+                    </a>
+                  <?php } ?>
+                  <span style="margin:0 10px;">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></span>
+                  <?php if($pagina < $total_paginas){ ?>
+                    <a href="?id=<?php echo $id; ?>&pagina=<?php echo $pagina+1; ?>" class="btn-paginador" title="Siguiente">
+                      <i class="fa-solid fa-chevron-right" style="font-weight:900;font-size:1.25em;text-shadow:0 0 1px #222;"></i>
+                    </a>
+                  <?php } ?>
+                </div>
             </div>
         </div>
     </div>
