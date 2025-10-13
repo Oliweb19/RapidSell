@@ -74,9 +74,22 @@
                     <button type="submit" id="btn-search"><i class="fa-solid fa-magnifying-glass"></i></button>
                   </form>
                   <?php
-                    //var_dump($_POST['date']);
-                    if(isset($_POST['date']) == NULL){ 
-                  ?>    
+                    // Paginador
+                    $por_pagina = 10;
+                    $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+                    $inicio = ($pagina - 1) * $por_pagina;
+                    $filtro_fecha = false;
+                    $fecha_actual = date("d/m/Y");
+                    if(isset($_POST['date']) && !empty($_POST['date'])) {
+                      $fecha = $_POST['date'];
+                      $filtro_fecha = true;
+                    } else if(isset($_GET['date']) && !empty($_GET['date'])) {
+                      $fecha = $_GET['date'];
+                      $filtro_fecha = true;
+                    } else {
+                      $fecha = $fecha_actual;
+                    }
+                  ?>
             </div>
             <div class="bars-products">
                 <h2>Mis Ventas</h2>
@@ -92,11 +105,15 @@
                       </tr>
                     </thead>
                     <?php 
-                      //$fecha = date("d/m/Y");
-                      
-                      $sql = "SELECT * FROM ventas WHERE fecha='$fecha'";
+                      // Contar total de ventas
+                      $sql_total = "SELECT COUNT(*) as total FROM ventas WHERE fecha='$fecha'";
+                      $res_total = mysqli_query($conexion, $sql_total);
+                      $row_total = mysqli_fetch_assoc($res_total);
+                      $total_ventas = $row_total['total'];
+                      $total_paginas = ceil($total_ventas / $por_pagina);
+                      // Obtener ventas de la página actual
+                      $sql = "SELECT * FROM ventas WHERE fecha='$fecha' ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
                       $resultado = mysqli_query($conexion,$sql);
-
                       while($mostrar = mysqli_fetch_array($resultado)){ 
                     ?>
                     <tbody>
@@ -115,52 +132,20 @@
                       }
                     ?>
                   </table>
+                  <div style="margin-top:20px; text-align:center;">
+                    <?php if($pagina > 1){ ?>
+                      <a href="?pagina=<?php echo $pagina-1; ?><?php echo $filtro_fecha ? '&date='.urlencode($fecha) : ''; ?>" class="btn-paginador" title="Anterior">
+                        <i class="fa-solid fa-chevron-left paginador-flecha"></i>
+                      </a>
+                    <?php } ?>
+                    <span style="margin:0 10px;">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></span>
+                    <?php if($pagina < $total_paginas){ ?>
+                      <a href="?pagina=<?php echo $pagina+1; ?><?php echo $filtro_fecha ? '&date='.urlencode($fecha) : ''; ?>" class="btn-paginador" title="Siguiente">
+                        <i class="fa-solid fa-chevron-right paginador-flecha"></i>
+                      </a>
+                    <?php } ?>
+                  </div>
             </div>
-            <?php
-              }
-              else{
-            ?>
-            <div class="bars-products">
-                <h2>Mis Ventas</h2>
-                <table>
-                    <thead>
-                      <tr>
-                        <th>N° Factura</th>
-                        <th>Total en $</th>
-                        <th>Total en Bs</th>
-                        <th>Metodo de Pago</th>
-                        <th>Fecha de Venta</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <?php 
-                      $fecha = $_POST['date'];
-                      
-                      $sql = "SELECT * FROM ventas WHERE fecha='$fecha'";
-                      $resultado = mysqli_query($conexion,$sql);
-
-                      while($mostrar = mysqli_fetch_array($resultado)){ 
-                    ?>
-                    <tbody>
-                      <tr>
-                        <td><?php echo $mostrar['id_compra']; ?></td>
-                        <td><?php echo $mostrar['total_pagar']; ?>$</td>
-                        <td>Bs. <?php echo $mostrar['total_pagar_bs']; ?></td>
-                        <td><?php echo $mostrar['metodo_pago']; ?></td> 
-                        <td><?php echo $mostrar['fecha']; ?></td>
-                        <td>
-                            <a href="view-compra.php?id=<?php echo $mostrar['id_compra']; ?>" id="view"><i class="fa-regular fa-eye"></i></a>
-                        </td>
-                      </tr>
-                    </tbody>
-                    <?php
-                      }
-                    ?>
-                  </table>
-            </div>
-            <?php
-              }
-            ?>
         </div>
     </div>
 </body>

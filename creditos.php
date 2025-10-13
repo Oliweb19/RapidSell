@@ -69,6 +69,25 @@
             </div>
             <div class="bars-products">
                 <h2>Creditos</h2>
+                <?php
+                  // Paginador créditos pendientes
+                  $por_pagina = 10;
+                  $pagina = isset($_GET['pagina_pend']) ? (int)$_GET['pagina_pend'] : 1;
+                  $inicio = ($pagina - 1) * $por_pagina;
+                  $sql_total = "SELECT COUNT(*) as total FROM credito WHERE estatu = 1";
+                  $res_total = mysqli_query($conexion, $sql_total);
+                  $row_total = mysqli_fetch_assoc($res_total);
+                  $total_creditos = $row_total['total'];
+                  $total_paginas = ceil($total_creditos / $por_pagina);
+                  $sql = "SELECT * FROM credito 
+                      JOIN ventas ON ventas.id_ventas = credito.id_venta 
+                      JOIN compra ON ventas.id_compra = compra.id_compra 
+                      WHERE credito.estatu = 1
+                      GROUP BY credito.id_credito
+                      ORDER BY ventas.fecha DESC
+                      LIMIT $inicio, $por_pagina";
+                  $resultado = mysqli_query($conexion,$sql);
+                ?>
                 <table class="index-tabla">
                     <thead>
                       <tr>
@@ -80,28 +99,14 @@
                         <th>Acciones</th>
                       </tr>
                     </thead>
-                    <?php 
-                    
-                      $sql = "SELECT * FROM credito 
-                      JOIN ventas ON ventas.id_ventas = credito.id_venta 
-                      JOIN compra ON ventas.id_compra = compra.id_compra 
-                      WHERE credito.estatu = 1
-                      GROUP BY credito.id_credito";
-                      $resultado = mysqli_query($conexion,$sql);
-
-                      while($mostrar = mysqli_fetch_array($resultado)){  
-                    ?>
+                    <?php while($mostrar = mysqli_fetch_array($resultado)){ ?>
                     <tbody>
                       <tr>
                         <td><?php echo $mostrar['id_compra']; ?></td>
                         <td><?php echo $mostrar['nombre']; ?></td>
                         <td><?php echo $mostrar['total_pagar']; ?>$</td> 
                         <td>
-                          <?php 
-                            if($mostrar['estatu']==1){
-                              echo "No a Pagado";
-                            } 
-                          ?>
+                          <?php if($mostrar['estatu']==1){ echo "No a Pagado"; } ?>
                         </td>
                         <td><?php echo $mostrar['fecha']; ?></td> 
                         <td>
@@ -109,13 +114,43 @@
                         </td>
                       </tr>
                     </tbody>
-                    <?php 
-                      }
-                    ?>
-                  </table>
+                    <?php } ?>
+                </table>
+                <div style="margin-top:20px; text-align:center;">
+                  <?php if($pagina > 1){ ?>
+                    <a href="?pagina_pend=<?php echo $pagina-1; ?>" class="btn-paginador" title="Anterior">
+                      <i class="fa-solid fa-chevron-left paginador-flecha"></i>
+                    </a>
+                  <?php } ?>
+                  <span style="margin:0 10px;">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></span>
+                  <?php if($pagina < $total_paginas){ ?>
+                    <a href="?pagina_pend=<?php echo $pagina+1; ?>" class="btn-paginador" title="Siguiente">
+                      <i class="fa-solid fa-chevron-right paginador-flecha"></i>
+                    </a>
+                  <?php } ?>
+                </div>
             </div>
             <div class="bars-products">
                 <h2>Creditos ya pagados</h2>
+                <?php
+                  // Paginador créditos pagados
+                  $por_pagina_pag = 10;
+                  $pagina_pag = isset($_GET['pagina_pag']) ? (int)$_GET['pagina_pag'] : 1;
+                  $inicio_pag = ($pagina_pag - 1) * $por_pagina_pag;
+                  $sql_total_pag = "SELECT COUNT(*) as total FROM credito WHERE estatu = 0";
+                  $res_total_pag = mysqli_query($conexion, $sql_total_pag);
+                  $row_total_pag = mysqli_fetch_assoc($res_total_pag);
+                  $total_creditos_pag = $row_total_pag['total'];
+                  $total_paginas_pag = ceil($total_creditos_pag / $por_pagina_pag);
+                  $sql = "SELECT * FROM credito 
+                      JOIN ventas ON ventas.id_ventas = credito.id_venta 
+                      JOIN compra ON ventas.id_compra = compra.id_compra 
+                      WHERE credito.estatu = 0
+                      GROUP BY credito.id_credito
+                      ORDER BY ventas.fecha DESC
+                      LIMIT $inicio_pag, $por_pagina_pag";
+                  $resultado = mysqli_query($conexion,$sql);
+                ?>
                 <table class="index-tabla">
                     <thead>
                       <tr>
@@ -126,38 +161,33 @@
                         <th>Fecha de Venta</th>
                       </tr>
                     </thead>
-                    <?php 
-                    
-                      $sql = "SELECT * FROM credito 
-                      JOIN ventas ON ventas.id_ventas = credito.id_venta 
-                      JOIN compra ON ventas.id_compra = compra.id_compra 
-                      WHERE credito.estatu = 0
-                      GROUP BY credito.id_credito
-                      ORDER BY ventas.fecha DESC
-                      LIMIT 20";
-                      $resultado = mysqli_query($conexion,$sql);
-
-                      while($mostrar = mysqli_fetch_array($resultado)){  
-                    ?>
+                    <?php while($mostrar = mysqli_fetch_array($resultado)){ ?>
                     <tbody>
                       <tr>
                         <td><?php echo $mostrar['id_compra']; ?></td>
                         <td><?php echo $mostrar['nombre']; ?></td>
                         <td><?php echo $mostrar['total_pagar']; ?>$</td> 
                         <td>
-                          <?php 
-                            if($mostrar['estatu']==0){
-                              echo "Cancelado";
-                            } 
-                          ?>
+                          <?php if($mostrar['estatu']==0){ echo "Cancelado"; } ?>
                         </td>
                         <td><?php echo $mostrar['fecha']; ?></td> 
                       </tr>
                     </tbody>
-                    <?php 
-                      }
-                    ?>
-                  </table>
+                    <?php } ?>
+                </table>
+                <div style="margin-top:20px; text-align:center;">
+                  <?php if($pagina_pag > 1){ ?>
+                    <a href="?pagina_pag=<?php echo $pagina_pag-1; ?>" class="btn-paginador" title="Anterior">
+                      <i class="fa-solid fa-chevron-left paginador-flecha"></i>
+                    </a>
+                  <?php } ?>
+                  <span style="margin:0 10px;">Página <?php echo $pagina_pag; ?> de <?php echo $total_paginas_pag; ?></span>
+                  <?php if($pagina_pag < $total_paginas_pag){ ?>
+                    <a href="?pagina_pag=<?php echo $pagina_pag+1; ?>" class="btn-paginador" title="Siguiente">
+                      <i class="fa-solid fa-chevron-right paginador-flecha"></i>
+                    </a>
+                  <?php } ?>
+                </div>
             </div>
         </div>
     </div>
