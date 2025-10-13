@@ -68,7 +68,7 @@
                 </h3>
             </div>
             <div class="bars-products">
-                  <h2>Buscar ventas por la fecha</h2>
+                  <h2>Buscar ventas por la fecha y N° Factura</h2>
                   <form action="mis-ventas.php" method="post" class="monto"> 
                     <input type="search" name="date" id="" placeholder="Ejemplo. 00/00/0000" class="especial">
                     <button type="submit" id="btn-search"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -80,12 +80,26 @@
                     $inicio = ($pagina - 1) * $por_pagina;
                     $filtro_fecha = false;
                     $fecha_actual = date("d/m/Y");
-                    if(isset($_POST['date']) && !empty($_POST['date'])) {
-                      $fecha = $_POST['date'];
-                      $filtro_fecha = true;
-                    } else if(isset($_GET['date']) && !empty($_GET['date'])) {
-                      $fecha = $_GET['date'];
-                      $filtro_fecha = true;
+                    // Determinar si el input corresponde a una fecha o a un número de factura
+                    $buscar_factura = false;
+                    $factura = '';
+                    if(isset($_POST['date']) && trim($_POST['date']) !== '') {
+                      $input = trim($_POST['date']);
+                    } else if(isset($_GET['date']) && trim($_GET['date']) !== '') {
+                      $input = trim($_GET['date']);
+                    } else {
+                      $input = '';
+                    }
+
+                    if($input !== ''){
+                      // Si el usuario ingresó sólo dígitos, lo tratamos como N° de factura
+                      if(ctype_digit($input)){
+                        $buscar_factura = true;
+                        $factura = $input;
+                      } else {
+                        $fecha = $input;
+                        $filtro_fecha = true;
+                      }
                     } else {
                       $fecha = $fecha_actual;
                     }
@@ -105,15 +119,27 @@
                       </tr>
                     </thead>
                     <?php 
-                      // Contar total de ventas
-                      $sql_total = "SELECT COUNT(*) as total FROM ventas WHERE fecha='$fecha'";
-                      $res_total = mysqli_query($conexion, $sql_total);
-                      $row_total = mysqli_fetch_assoc($res_total);
-                      $total_ventas = $row_total['total'];
-                      $total_paginas = ceil($total_ventas / $por_pagina);
-                      // Obtener ventas de la página actual
-                      $sql = "SELECT * FROM ventas WHERE fecha='$fecha' ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
-                      $resultado = mysqli_query($conexion,$sql);
+                      // Contar total de ventas (filtrar por fecha o por factura si se proporcionó)
+                      if(!empty($buscar_factura) && $buscar_factura === true){
+                        $factura_int = (int)$factura;
+                        $sql_total = "SELECT COUNT(*) as total FROM ventas WHERE id_compra = $factura_int";
+                        $res_total = mysqli_query($conexion, $sql_total);
+                        $row_total = mysqli_fetch_assoc($res_total);
+                        $total_ventas = $row_total['total'];
+                        $total_paginas = ceil($total_ventas / $por_pagina);
+                        // Obtener venta por id_compra
+                        $sql = "SELECT * FROM ventas WHERE id_compra = $factura_int ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
+                        $resultado = mysqli_query($conexion,$sql);
+                      } else {
+                        $sql_total = "SELECT COUNT(*) as total FROM ventas WHERE fecha='$fecha'";
+                        $res_total = mysqli_query($conexion, $sql_total);
+                        $row_total = mysqli_fetch_assoc($res_total);
+                        $total_ventas = $row_total['total'];
+                        $total_paginas = ceil($total_ventas / $por_pagina);
+                        // Obtener ventas de la página actual
+                        $sql = "SELECT * FROM ventas WHERE fecha='$fecha' ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
+                        $resultado = mysqli_query($conexion,$sql);
+                      }
                       while($mostrar = mysqli_fetch_array($resultado)){ 
                     ?>
                     <tbody>
