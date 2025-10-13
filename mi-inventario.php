@@ -9,14 +9,6 @@
     <title>RapidSell</title>
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
-    <style>
-      .paginador-flecha {
-        font-weight: 900;
-        font-size: 1.25em;
-        /* Simula un 10% más de grosor */
-        text-shadow: 0 0 1px #222;
-      }
-    </style>
     <link rel="shourt icon" href="img/RapidSell mini-logo.png">
     <!-- Icons -->
     <link href="iconos/fontawesome-free-6.2.1-web/css/all.css" rel="stylesheet">

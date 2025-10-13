@@ -9,26 +9,6 @@
     <title>RapidSell</title>
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
-    <style>
-      .paginador-flecha {
-        font-weight: 900;
-        font-size: 1.25em;
-        text-shadow: 0 0 1px #222;
-      }
-      .btn-paginador {
-        display: inline-block;
-        padding: 6px 12px;
-        margin: 0 2px;
-        color: #222;
-        background: #f2f2f2;
-        border-radius: 4px;
-        text-decoration: none;
-        transition: background 0.2s;
-      }
-      .btn-paginador:hover {
-        background: #e0e0e0;
-      }
-    </style>
     <link rel="shourt icon" href="img/RapidSell mini-logo.png">
     <!-- Icons -->
 	<link href="iconos/fontawesome-free-6.2.1-web/css/all.css" rel="stylesheet">
