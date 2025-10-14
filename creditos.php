@@ -70,28 +70,37 @@
             <div class="bars-products">
                 <h2>Creditos</h2>
                 <?php
-                  // Paginador créditos pendientes
-                  $por_pagina = 10;
-                  $pagina = isset($_GET['pagina_pend']) ? (int)$_GET['pagina_pend'] : 1;
-                  $inicio = ($pagina - 1) * $por_pagina;
-                  $sql_total = "SELECT COUNT(*) as total FROM credito WHERE estatu = 1";
-                  $res_total = mysqli_query($conexion, $sql_total);
-                  $row_total = mysqli_fetch_assoc($res_total);
-                  $total_creditos = $row_total['total'];
-                  $total_paginas = ceil($total_creditos / $por_pagina);
-                  $sql = "SELECT * FROM credito 
-                      JOIN ventas ON ventas.id_ventas = credito.id_venta 
-                      JOIN compra ON ventas.id_compra = compra.id_compra 
-                      WHERE credito.estatu = 1
-                      GROUP BY credito.id_credito
-                      ORDER BY ventas.fecha DESC
-                      LIMIT $inicio, $por_pagina";
-                  $resultado = mysqli_query($conexion,$sql);
+          // Paginador créditos pendientes (agrupar por nombre y sumar montos)
+          $por_pagina = 10;
+          $pagina = isset($_GET['pagina_pend']) ? (int)$_GET['pagina_pend'] : 1;
+          $inicio = ($pagina - 1) * $por_pagina;
+          // Contar nombres distintos para paginación
+          $sql_total = "SELECT COUNT(DISTINCT compra.nombre) AS total FROM credito 
+                 JOIN ventas ON ventas.id_ventas = credito.id_venta 
+                 JOIN compra ON ventas.id_compra = compra.id_compra 
+                 WHERE credito.estatu = 1";
+          $res_total = mysqli_query($conexion, $sql_total);
+          $row_total = mysqli_fetch_assoc($res_total);
+          $total_creditos = $row_total['total'];
+          $total_paginas = ceil($total_creditos / $por_pagina);
+          // Seleccionar por nombre, sumar montos y tomar la fecha más reciente y el id_credito mínimo para acciones
+          $sql = "SELECT compra.nombre AS nombre_deudor, 
+                 GROUP_CONCAT(DISTINCT ventas.id_compra SEPARATOR ',') AS facturas, 
+                 SUM(CAST(ventas.total_pagar AS DECIMAL(10,2))) AS total_suma, 
+                 MAX(STR_TO_DATE(ventas.fecha, '%d/%m/%Y')) AS fecha_orden, 
+                 MIN(credito.id_credito) AS id_credito_accion 
+              FROM credito 
+              JOIN ventas ON ventas.id_ventas = credito.id_venta 
+              JOIN compra ON ventas.id_compra = compra.id_compra 
+              WHERE credito.estatu = 1
+              GROUP BY compra.nombre
+              ORDER BY fecha_orden DESC
+              LIMIT $inicio, $por_pagina";
+          $resultado = mysqli_query($conexion,$sql);
                 ?>
                 <table class="index-tabla">
                     <thead>
                       <tr>
-                        <th>N° de Factura</th>
                         <th>Nombre del Deudor</th>
                         <th>Monto a Cancelar</th>
                         <th>Estatu de la Venta</th>
@@ -102,15 +111,14 @@
                     <?php while($mostrar = mysqli_fetch_array($resultado)){ ?>
                     <tbody>
                       <tr>
-                        <td><?php echo $mostrar['id_compra']; ?></td>
-                        <td><?php echo $mostrar['nombre']; ?></td>
-                        <td><?php echo $mostrar['total_pagar']; ?>$</td> 
+                        <td><?php echo htmlspecialchars($mostrar['nombre_deudor']); ?></td>
+                        <td><?php echo number_format($mostrar['total_suma'], 2); ?>$</td> 
                         <td>
-                          <?php if($mostrar['estatu']==1){ echo "No a Pagado"; } ?>
+                          <?php echo "No ha Pagado"; ?>
                         </td>
-                        <td><?php echo $mostrar['fecha']; ?></td> 
+                        <td><?php echo date('d/m/Y', strtotime($mostrar['fecha_orden'])); ?></td> 
                         <td>
-                          <a href="update-credito.php?id=<?php echo $mostrar['id_credito']; ?>" id="trash"><i class="fa-regular fa-trash-can"></i></a>
+                          <a href="update-credito.php?id=<?php echo $mostrar['id_credito_accion']; ?>" id="trash"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                       </tr>
                     </tbody>
@@ -133,28 +141,36 @@
             <div class="bars-products">
                 <h2>Creditos ya pagados</h2>
                 <?php
-                  // Paginador créditos pagados
-                  $por_pagina_pag = 10;
-                  $pagina_pag = isset($_GET['pagina_pag']) ? (int)$_GET['pagina_pag'] : 1;
-                  $inicio_pag = ($pagina_pag - 1) * $por_pagina_pag;
-                  $sql_total_pag = "SELECT COUNT(*) as total FROM credito WHERE estatu = 0";
-                  $res_total_pag = mysqli_query($conexion, $sql_total_pag);
-                  $row_total_pag = mysqli_fetch_assoc($res_total_pag);
-                  $total_creditos_pag = $row_total_pag['total'];
-                  $total_paginas_pag = ceil($total_creditos_pag / $por_pagina_pag);
-                  $sql = "SELECT * FROM credito 
-                      JOIN ventas ON ventas.id_ventas = credito.id_venta 
-                      JOIN compra ON ventas.id_compra = compra.id_compra 
-                      WHERE credito.estatu = 0
-                      GROUP BY credito.id_credito
-                      ORDER BY ventas.fecha DESC
-                      LIMIT $inicio_pag, $por_pagina_pag";
-                  $resultado = mysqli_query($conexion,$sql);
+          // Paginador créditos pagados (agrupar por nombre y sumar montos)
+          $por_pagina_pag = 10;
+          $pagina_pag = isset($_GET['pagina_pag']) ? (int)$_GET['pagina_pag'] : 1;
+          $inicio_pag = ($pagina_pag - 1) * $por_pagina_pag;
+          // Contar nombres distintos para paginación
+          $sql_total_pag = "SELECT COUNT(DISTINCT compra.nombre) AS total FROM credito 
+                   JOIN ventas ON ventas.id_ventas = credito.id_venta 
+                   JOIN compra ON ventas.id_compra = compra.id_compra 
+                   WHERE credito.estatu = 0";
+          $res_total_pag = mysqli_query($conexion, $sql_total_pag);
+          $row_total_pag = mysqli_fetch_assoc($res_total_pag);
+          $total_creditos_pag = $row_total_pag['total'];
+          $total_paginas_pag = ceil($total_creditos_pag / $por_pagina_pag);
+          $sql = "SELECT compra.nombre AS nombre_deudor, 
+                 GROUP_CONCAT(DISTINCT ventas.id_compra SEPARATOR ',') AS facturas, 
+                 SUM(CAST(ventas.total_pagar AS DECIMAL(10,2))) AS total_suma, 
+                 MAX(STR_TO_DATE(ventas.fecha, '%d/%m/%Y')) AS fecha_orden, 
+                 MIN(credito.id_credito) AS id_credito_accion 
+              FROM credito 
+              JOIN ventas ON ventas.id_ventas = credito.id_venta 
+              JOIN compra ON ventas.id_compra = compra.id_compra 
+              WHERE credito.estatu = 0
+              GROUP BY compra.nombre
+              ORDER BY fecha_orden DESC
+              LIMIT $inicio_pag, $por_pagina_pag";
+          $resultado = mysqli_query($conexion,$sql);
                 ?>
                 <table class="index-tabla">
                     <thead>
                       <tr>
-                        <th>N° de Factura</th>
                         <th>Nombre del Deudor</th>
                         <th>Monto a Cancelar</th>
                         <th>Estatu de la Venta</th>
@@ -164,13 +180,12 @@
                     <?php while($mostrar = mysqli_fetch_array($resultado)){ ?>
                     <tbody>
                       <tr>
-                        <td><?php echo $mostrar['id_compra']; ?></td>
-                        <td><?php echo $mostrar['nombre']; ?></td>
-                        <td><?php echo $mostrar['total_pagar']; ?>$</td> 
+                        <td><?php echo htmlspecialchars($mostrar['nombre_deudor']); ?></td>
+                        <td><?php echo number_format($mostrar['total_suma'], 2); ?>$</td> 
                         <td>
-                          <?php if($mostrar['estatu']==0){ echo "Cancelado"; } ?>
+                          <?php echo "Cancelado"; ?>
                         </td>
-                        <td><?php echo $mostrar['fecha']; ?></td> 
+                        <td><?php echo date('d/m/Y', strtotime($mostrar['fecha_orden'])); ?></td> 
                       </tr>
                     </tbody>
                     <?php } ?>
