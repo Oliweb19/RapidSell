@@ -128,7 +128,7 @@
                         $total_ventas = $row_total['total'];
                         $total_paginas = ceil($total_ventas / $por_pagina);
                         // Obtener venta por id_compra
-                        $sql = "SELECT * FROM ventas WHERE id_compra = $factura_int ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
+                        $sql = "SELECT * FROM ventas WHERE id_compra LIKE '%$factura_int%' ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
                         $resultado = mysqli_query($conexion,$sql);
                       } else {
                         $sql_total = "SELECT COUNT(*) as total FROM ventas WHERE fecha='$fecha'";
@@ -137,7 +137,7 @@
                         $total_ventas = $row_total['total'];
                         $total_paginas = ceil($total_ventas / $por_pagina);
                         // Obtener ventas de la página actual
-                        $sql = "SELECT * FROM ventas WHERE fecha='$fecha' ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
+                        $sql = "SELECT * FROM ventas WHERE fecha LIKE '$fecha' ORDER BY id_compra DESC LIMIT $inicio, $por_pagina";
                         $resultado = mysqli_query($conexion,$sql);
                       }
                       while($mostrar = mysqli_fetch_array($resultado)){ 
