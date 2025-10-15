@@ -1,5 +1,6 @@
 <?php
     include_once 'conexion_BD.php';
+    session_start();
 
     // Conexión a la base de datos
     $servername = "localhost";
@@ -28,6 +29,7 @@
             
         $id = $resu['id_producto'];
         $precio_bs = $_POST['valor'];
+        $_SESSION['dolar'] = $precio_bs;
         $new_precio = number_format($resu['precio'] * $precio_bs, 2, '.', '');
 
         $sql = "UPDATE productos SET precio_bs = '$new_precio' WHERE id_producto = '$id'";

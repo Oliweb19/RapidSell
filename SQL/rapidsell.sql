@@ -1,12 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Servidor: 127.0.0.1
--- Tiempo de generación: 23-09-2025 a las 16:02:39
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -116,6 +107,16 @@ INSERT INTO `ventas` (`id_ventas`, `id_compra`, `total_pagar`, `total_pagar_bs`,
 (6, '892936016565155546', '5.7', '946.2', 'Punto', '23/09/2025'),
 (7, '413380718262040411', '2.85', '473.1', 'Credito', '23/09/2025');
 
+
+CREATE TABLE IF NOT EXISTS `avances` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `monto` decimal(12,2) NOT NULL,
+  `metodo_pago` varchar(20) NOT NULL,
+  `porcentaje_ganancia` decimal(6,2) NOT NULL,
+  `total` decimal(12,2) NOT NULL,
+  `fecha` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 --
 -- Índices para tablas volcadas
 --

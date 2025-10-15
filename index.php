@@ -1,7 +1,6 @@
 <?php
-
+  session_start();
   include_once 'conexion_BD.php'; 
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,6 +10,7 @@
     <title>RapidSell</title>
     <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modal.css">
     <link rel="shourt icon" href="img/RapidSell mini-logo.png">
     <!-- Icons -->
 	<link href="iconos/fontawesome-free-6.2.1-web/css/all.css" rel="stylesheet">
@@ -164,13 +164,23 @@
                               GROUP BY ventas.metodo_pago
                               ORDER BY metodo_pago ASC";
                               $resultado = mysqli_query($conexion,$sql);
-
+                              $ids_pago = [
+                                'Efectivo' => 'totalEfectivo',
+                                'Pago Móvil' => 'totalPagoMovil',
+                                'pago_movil' => 'totalPagoMovil',
+                                'efectivo' => 'totalEfectivo',
+                                'Punto' => 'totalPunto',
+                                'Credito' => 'totalCredito'
+                              ];
                               while($mostrar = mysqli_fetch_array($resultado)){ 
+                                $metodo = $mostrar['metodo_pago'];
+                                $id_td = isset($ids_pago[$metodo]) ? $ids_pago[$metodo] : '';
                             ?>
                             <tbody>
                               <tr>
-                                <td><?php echo $mostrar['metodo_pago']; ?></td>
-                                <td><?php echo $mostrar['SUM(total_pagar)']; ?>$</td>
+                                <td><?php echo $metodo; ?></td>
+                                <?php $valor_row = isset($mostrar['SUM(total_pagar)']) ? floatval($mostrar['SUM(total_pagar)']) : 0; ?>
+                                <td><span <?php if($id_td) echo 'id="'.$id_td.'"'; ?>><?php echo str_replace('.', ',', number_format($valor_row, 2)); ?></span>$</td>
                               </tr> 
                             </tbody>
                             <?php
@@ -184,9 +194,10 @@
                               $row_total = mysqli_fetch_assoc($resultado_total);
                               $total_dolares = $row_total['total_dolares'];
                             ?>
-                            <tr>
-                              <td colspan="1" class="cart-total"><h3>Total: <?php echo number_format($total_dolares, 3); ?>$</h3></td>
-                              <!-- ...Limite el numero de decimales a 3... -->
+                              <tr>
+                              <?php $total_dolares_val = isset($row_total['total_dolares']) ? floatval($row_total['total_dolares']) : 0; ?>
+                              <td colspan="1" class="cart-total"><h3>Total: <?php echo str_replace('.', ',', number_format($total_dolares_val, 2)); ?>$</h3></td>
+                              <!-- ...Limite el numero de decimales a 2... -->
                             </tr>
                             </tfoot>
                           </table>
@@ -218,7 +229,8 @@
                             <tbody>
                               <tr>
                                 <td><?php echo $mostrar['metodo_pago']; ?></td>
-                                <td><?php echo $mostrar['SUM(total_pagar)']; ?>$</td>
+                                <?php $valor_row = isset($mostrar['SUM(total_pagar)']) ? floatval($mostrar['SUM(total_pagar)']) : 0; ?>
+                                <td><?php echo str_replace('.', ',', number_format($valor_row, 2)); ?>$</td>
                               </tr>
                             </tbody>
                             <?php
@@ -230,11 +242,12 @@
                               $sql_total = "SELECT SUM(total_pagar) AS total_dolares FROM ventas WHERE fecha LIKE '%$date%'";
                               $resultado_total = mysqli_query($conexion, $sql_total);
                               $row_total = mysqli_fetch_assoc($resultado_total);
-                              $total_dolares = $row_total['total_dolares'];
+                              $total_dolares = number_format($row_total['total_dolares'], 2);
                             ?>
                             <tr>
-                              <td colspan="1" class="cart-total"><h3>Total: <?php echo number_format($total_dolares, 3); ?>$</h3></td>
-                              <!-- ...Limite el numero de decimales a 3... -->
+                              <?php $total_dolares_val = isset($row_total['total_dolares']) ? floatval($row_total['total_dolares']) : 0; ?>
+                              <td colspan="1" class="cart-total"><h3>Total: <?php echo str_replace('.', ',', number_format($total_dolares_val, 2)); ?>$</h3></td>
+                              <!-- ...Limite el numero de decimales a 2... -->
                             </tr>
                             </tfoot>
                           </table>
@@ -242,10 +255,88 @@
                       <?php
                         }
                       ?>
+                      <button type="button" id="btnAvance">Hacer Avances <i class="fa-solid fa-money-bill-1-wave"></i></button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+<!-- Modal Avance -->
+<div id="modalAvance" class="modal-avance">
+  <div class="modal-avance-content">
+    <span class="close-avance" id="closeAvance">&times;</span>
+    <h2>Registrar Avance</h2>
+    <form action="registrar_avance.php" id="formAvance" method="post">
+      <label for="montoAvance">Monto del avance (Bs):</label>
+      <input type="number" id="montoAvance" name="montoAvance" min="0" step="0.01" required>
+
+      <label for="metodoPago">Método de pago:</label>
+      <select id="metodoPago" name="metodoPago" required>
+        <option value="BS">Efectivo</option>
+        <option value="Pago Movil">Pago Móvil</option>
+      </select>
+
+      <label for="porcentajeGanancia">Porcentaje de ganancia (%):</label>
+      <input type="number" id="porcentajeGanancia" name="porcentajeGanancia" min="0" step="0.01" required>
+
+      <div class="avance-total">
+        <label>Total a cobrar (Bs):</label>
+        <span id="totalAvance">0.00</span>
+      </div>
+      <?php if (!isset($_SESSION['dolar']) || !is_numeric($_SESSION['dolar']) || floatval($_SESSION['dolar']) <= 0): ?>
+        <div style="color:red; margin:10px 0; font-weight:bold;">¡Debe definir la tasa de dólar antes de registrar avances!</div>
+      <?php endif; ?>
+      <button type="submit" id="btnRegistrarAvance" <?php if (!isset($_SESSION['dolar']) || !is_numeric($_SESSION['dolar']) || floatval($_SESSION['dolar']) <= 0) echo 'disabled'; ?>>Registrar</button>
+    </form>
+  </div>
+</div>
+<script>
+// Mostrar/ocultar modal (puedes adaptar el trigger)
+document.getElementById('closeAvance').onclick = function() {
+  document.getElementById('modalAvance').style.display = 'none';
+};
+// Cálculo en tiempo real
+document.getElementById('formAvance').oninput = function() {
+  const monto = parseFloat(document.getElementById('montoAvance').value) || 0;
+  const porcentaje = parseFloat(document.getElementById('porcentajeGanancia').value) || 0;
+  const total = monto + (monto * porcentaje / 100);
+  document.getElementById('totalAvance').textContent = total.toFixed(2);
+};
+// Al enviar el formulario, registrar avance por AJAX y actualizar la tabla visual si es exitoso
+/*document.getElementById('formAvance').onsubmit = function(e) {
+  e.preventDefault();
+  const monto = parseFloat(document.getElementById('montoAvance').value) || 0;
+  const metodo = document.getElementById('metodoPago').value;
+  const porcentaje = parseFloat(document.getElementById('porcentajeGanancia').value) || 0;
+  const formData = new FormData(this);
+  fetch('registrar_avance.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success) {
+      // No sumamos visualmente, el avance ya aparecerá en la tabla de montos diarios al recargar
+      document.getElementById('modalAvance').style.display = 'none';
+      document.getElementById('formAvance').reset();
+      document.getElementById('totalAvance').textContent = '0.00';
+      alert('Avance registrado correctamente como venta.');
+      // Opcional: recargar la página para ver el cambio reflejado
+      location.reload();
+    } else {
+      alert('Error: ' + (data.error || 'No se pudo registrar el avance.'));
+    }
+  })
+  .catch(() => {
+    alert('Error de conexión al registrar el avance.');
+  });
+};*/
+</script>
+<script>
+// Mostrar el modal al hacer clic en el botón
+document.getElementById('btnAvance').onclick = function() {
+  document.getElementById('modalAvance').style.display = 'block';
+};
+</script>
 </body>
 </html>

@@ -1,3 +1,72 @@
+/* Modal Avance */
+.modal-avance {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.4);
+}
+.modal-avance-content {
+    background: #fff;
+    margin: 5% auto;
+    padding: 30px 25px 20px 25px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+    position: relative;
+}
+.close-avance {
+    color: #888;
+    position: absolute;
+    right: 18px;
+    top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-avance:hover {
+    color: #e74c3c;
+}
+#formAvance label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+#formAvance input, #formAvance select {
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    font-size: 1em;
+}
+.avance-total {
+    margin: 15px 0 10px 0;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2d3436;
+}
+#formAvance button[type="submit"] {
+    background: #1abc9c;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 0;
+    width: 100%;
+    font-size: 1.1em;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#formAvance button[type="submit"]:hover {
+    background: #16a085;
+}
 .modal {
     display: none; /* Oculto por defecto */
     position: fixed;
@@ -257,3 +326,33 @@
         align-items: stretch;
     }
 }
+
+/* Estilos para el botón Hacer Avances */
+#btnAvance {
+    margin-top: 20px;
+    background: #031b46;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+#btnAvance:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.12); }
+#btnAvance:active { transform: translateY(0); }
+
+/* Estilos para el botón Registrar dentro del modal (existe id btnRegistrarAvance si está presente) */
+#btnRegistrarAvance {
+    background: #0b6b54;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+}
+#btnRegistrarAvance[disabled] { opacity: 0.5; cursor: not-allowed; }
