@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,25 +82,37 @@
                         <img src="img/RapidSell.png" alt="">
                     </div>
                     <div class="bars-form-update">
-                        <form action="up-prod.php" method="post">
+                        <form action="up-prod.php" method="post" id="formUpdateProd">
                             <input type="hidden" name="id" value="<?php echo $id; ?>">
                             <div>
-                                <label for="">Nombre del Producto: </label>
-                                <input type="text" name="nom" id="" value="<?php echo $mostrar['nombre_producto']; ?>"> 
+                                <label for="cerial">Código de barra: </label>
+                                <input type="text" name="cerial" id="cerial" value="<?php echo $mostrar['cerial']; ?>">
                             </div>
                             <div>
-                                <label for="">Precio $: </label>
-                                <input type="text" name="precio" id="" value="<?php echo $mostrar['precio']; ?>">
+                                <label for="nom">Nombre del Producto: </label>
+                                <input type="text" name="nom" id="nom" value="<?php echo $mostrar['nombre_producto']; ?>"> 
                             </div>
                             <div>
-                                <label for="">Precio Bs: </label>
-                                <input type="text" name="precio_bs" id="" value="<?php echo $mostrar['precio_bs']; ?>">
+                                <label for="unidades">Unidades por bulto: </label>
+                                <input type="number" name="unidades" id="unidades" min="1" value="">
                             </div>
                             <div>
-                                <label for="">Stock: </label>
-                                <input type="text" name="stock" id="" value="<?php echo $mostrar['stock']; ?>">
+                                <label for="bultos">Cantidad de bultos: </label>
+                                <input type="number" name="bultos" id="bultos" min="1" value="">
                             </div>
-                            
+                            <div>
+                                <label for="precio">Precio del bulto ($): </label>
+                                <input type="text" name="precio" id="precio" value="<?php echo $mostrar['precio']; ?>">
+                            </div>
+                            <div>
+                                <label for="porcentaje">Porcentaje de ganancia (%): </label>
+                                <input type="number" name="porcentaje" id="porcentaje" min="0" step="0.01" value="">
+                            </div>
+                            <!-- Cuadro visual de stock y ganancia -->
+                            <div id="calcResumen" style="margin:15px 0; padding:12px; background:#f7fafc; border-radius:8px; border:1px solid #e6eef6;">
+                                <strong>Stock calculado:</strong> <span id="stockCalculado">0</span><br>
+                                <strong>Ganancia estimada ($):</strong> <span id="gananciaCalculada">0.00</span>
+                            </div>
                             <button type="submit">Modificar</button>
                         </form>
                     </div>
@@ -109,5 +120,32 @@
             </div>
         </div>
     </div>
+    <script>
+    function calcularResumen() {
+        const unidades = parseFloat(document.getElementById('unidades').value) || 0;
+        const bultos = parseFloat(document.getElementById('bultos').value) || 0;
+        const precio = parseFloat(document.getElementById('precio').value) || 0;
+        const porcentaje = parseFloat(document.getElementById('porcentaje').value) || 0;
+        const stock = unidades * bultos;
+        document.getElementById('stockCalculado').textContent = stock;
+        // Calculo de ganancia igual que en PHP
+        if (unidades > 0 && bultos > 0 && precio > 0) {
+            const costo_bulto = precio;
+            const porcentaje_ganancia = porcentaje / 100;
+            const costo_unidad = costo_bulto / unidades;
+            const precio_venta_unidad = costo_unidad / (1 - porcentaje_ganancia);
+            const ganancia_unidad = precio_venta_unidad - costo_unidad;
+            const ganancia_total = ganancia_unidad * unidades * bultos;
+            document.getElementById('gananciaCalculada').textContent = ganancia_total.toFixed(2);
+        } else {
+            document.getElementById('gananciaCalculada').textContent = '0.00';
+        }
+    }
+    document.getElementById('unidades').addEventListener('input', calcularResumen);
+    document.getElementById('bultos').addEventListener('input', calcularResumen);
+    document.getElementById('precio').addEventListener('input', calcularResumen);
+    document.getElementById('porcentaje').addEventListener('input', calcularResumen);
+    window.addEventListener('DOMContentLoaded', calcularResumen);
+    </script>
 </body>
 </html>

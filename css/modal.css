@@ -330,6 +330,7 @@
 /* Estilos para el botón Hacer Avances */
 #btnAvance {
     margin-top: 20px;
+    margin-bottom: 20px;
     background: #031b46;
     color: #fff;
     border: none;
@@ -356,3 +357,30 @@
     cursor: pointer;
 }
 #btnRegistrarAvance[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+/* Tarjeta resumen semanal */
+.weekly-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
+    border: 1px solid #e6eef6;
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-top: 14px;
+    box-shadow: 0 4px 10px rgba(2,6,23,0.04);
+    max-width: 320px;
+}
+.weekly-card h4 {
+    margin: 0 0 6px 0;
+    font-size: 0.95em;
+    color: #0b3954;
+}
+.weekly-card .weekly-amount {
+    font-weight: 700;
+    font-size: 1.6em;
+    color: #0a6b4a;
+}
+.weekly-card .weekly-number { margin-right: 6px; }
+.weekly-card .weekly-note {
+    margin-top: 6px;
+    font-size: 0.8em;
+    color: #556b7a;
+}
