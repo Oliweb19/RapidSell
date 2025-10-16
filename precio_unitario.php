@@ -27,7 +27,7 @@ if ($result_compras->num_rows > 0) {
         // 4. OBTENER LA GANANCIA Y EL STOCK DEL PRODUCTO
         $sql_select_producto = "SELECT ganancia, stock FROM productos WHERE id_producto = $id_producto";
         $result_producto = $conn->query($sql_select_producto);
-
+        
         if ($result_producto->num_rows > 0) {
             $producto = $result_producto->fetch_assoc();
             $ganancia_total_stock = (float)$producto['ganancia'];

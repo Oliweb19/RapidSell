@@ -95,16 +95,16 @@ try {
 
     mysqli_commit($conexion);
     echo json_encode(['success' => true, 'total_bs' => $total_bs, 'total_dolar' => $total_dolar]);
+    header('Location:index.php');
     exit;
 } catch (Exception $e) {
     mysqli_rollback($conexion);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    header('Location:index.php');
     exit;
 }
 
-header("Location: index.php");
 
 
-?>
 ?>
 
