@@ -102,6 +102,8 @@ try {
     exit;
 }
 
+header("Location: index.php");
+
 
 ?>
 ?>
