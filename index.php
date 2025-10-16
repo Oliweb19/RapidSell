@@ -1,6 +1,73 @@
 <?php
   session_start();
   include_once 'conexion_BD.php'; 
+
+  // --- GESTIÓN DE GANANCIA SEMANAL ---
+  $today_w = date('w'); // 0 = Domingo, 1 = Lunes, ...
+  // Calcular lunes y sábado de la semana actual en formato d/m/Y
+  // NOTA: Para incluir el domingo en el cálculo semanal, se ajustará el rango de la consulta SQL.
+  $monday = date('d/m/Y', strtotime('monday this week'));
+  // El fin de la semana para el cálculo es el Sábado, pero se incluye el Domingo en la lógica
+  $saturday = date('d/m/Y', strtotime('saturday this week'));
+  $current_week = date('oW');
+  
+  // Condición 1: Reiniciar el valor de la sesión el domingo
+  if ($today_w == 0) {
+    // Domingo: resetear la ganancia semanal a 0 (y la semana)
+    $_SESSION['weekly_gain'] = 0.0;
+    $_SESSION['weekly_gain_week'] = $current_week;
+    // La consulta de la ganancia semanal se ejecutará en el siguiente bloque si se entra a la app el Domingo.
+  } 
+  
+  // Condición 2: Si es un nuevo inicio de semana (Lunes-Sábado), recalcular
+  if (!isset($_SESSION['weekly_gain_week']) || $_SESSION['weekly_gain_week'] !== $current_week) {
+    // Calcular suma de ganancia desde Lunes hasta el Sábado de la semana actual
+    $sql_week = "SELECT COALESCE(SUM(c.ganancia_unidad_vendida * c.cantidad_producto), 0) AS weekly_gain 
+           FROM ventas v 
+           JOIN compra c ON v.id_compra = c.id_compra 
+           WHERE STR_TO_DATE(v.fecha, '%d/%m/%Y') >= STR_TO_DATE('$monday', '%d/%m/%Y') 
+           AND STR_TO_DATE(v.fecha, '%d/%m/%Y') <= STR_TO_DATE('$saturday', '%d/%m/%Y')"; // Solo hasta el Sábado
+    $res_week = mysqli_query($conexion, $sql_week);
+    $row_week = $res_week ? mysqli_fetch_assoc($res_week) : null;
+    $weekly_gain_val = $row_week && isset($row_week['weekly_gain']) ? floatval($row_week['weekly_gain']) : 0.0;
+    $_SESSION['weekly_gain'] = $weekly_gain_val;
+    $_SESSION['weekly_gain_week'] = $current_week;
+  }
+  
+  // Si no es domingo y la ganancia ya fue calculada, simplemente se usa el valor de SESSION.
+  // Sin embargo, para que se actualice al día actual, la lógica del inicio es insuficiente.
+  // MEJORAMOS LA LÓGICA: Se añade la ganancia diaria a la sesión para que el "Resumen Semanal" sea acumulativo.
+
+  // Calculamos la ganancia de HOY para sumar a la sesión (si no se está buscando una fecha histórica)
+  $fecha = date("d/m/Y"); 
+  $sql_ganancia_hoy = "SELECT COALESCE(SUM(c.ganancia_unidad_vendida * c.cantidad_producto), 0) AS ganancia_hoy
+                        FROM ventas v
+                        JOIN compra c ON v.id_compra = c.id_compra
+                        WHERE v.fecha = '$fecha'";
+  $res_ganancia_hoy = mysqli_query($conexion, $sql_ganancia_hoy);
+  $ganancia_row_hoy = $res_ganancia_hoy ? mysqli_fetch_assoc($res_ganancia_hoy) : null;
+  $ganancia_hoy_val = $ganancia_row_hoy && isset($ganancia_row_hoy['ganancia_hoy']) ? floatval($ganancia_row_hoy['ganancia_hoy']) : 0.0;
+
+  // Lógica de cálculo diario acumulativo para la sesión semanal
+  // Si la ganancia de hoy no ha sido sumada a la sesión semanal, la sumamos (esto evita doble conteo si el usuario recarga)
+  // Se requiere una bandera en la sesión para el día. Como esto es complejo, la solución más simple es:
+  
+  // Si no hay búsqueda de fecha, re-calcular la semana hasta HOY
+  if (!isset($_POST['date']) || empty($_POST['date'])) {
+    $current_date_for_week = date('d/m/Y');
+    // Para el cálculo semanal HASTA HOY, el rango es desde el lunes hasta la fecha actual.
+    $sql_week_until_today = "SELECT COALESCE(SUM(c.ganancia_unidad_vendida * c.cantidad_producto), 0) AS weekly_gain_today 
+           FROM ventas v 
+           JOIN compra c ON v.id_compra = c.id_compra 
+           WHERE STR_TO_DATE(v.fecha, '%d/%m/%Y') >= STR_TO_DATE('$monday', '%d/%m/%Y') 
+           AND STR_TO_DATE(v.fecha, '%d/%m/%Y') <= STR_TO_DATE('$current_date_for_week', '%d/%m/%Y')";
+    $res_week_today = mysqli_query($conexion, $sql_week_until_today);
+    $row_week_today = $res_week_today ? mysqli_fetch_assoc($res_week_today) : null;
+    $weekly_gain_val_today = $row_week_today && isset($row_week_today['weekly_gain_today']) ? floatval($row_week_today['weekly_gain_today']) : 0.0;
+    $_SESSION['weekly_gain'] = $weekly_gain_val_today; // Sobrescribir la sesión con el cálculo actualizado.
+    $_SESSION['weekly_gain_week'] = $current_week; 
+  }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -201,6 +268,43 @@
                             </tr>
                             </tfoot>
                           </table>
+
+                          <?php
+                            // Ganancia real diaria en USD para la fecha actual o la fecha buscada
+                            $target_date = (isset($_POST['date']) && !empty($_POST['date'])) ? $date : $fecha;
+                            $sql_ganancia_def = "SELECT COALESCE(SUM(c.ganancia_unidad_vendida * c.cantidad_producto), 0) AS ganancia_real_diaria_usd
+                                                  FROM ventas v
+                                                  JOIN compra c ON v.id_compra = c.id_compra
+                                                  WHERE v.fecha LIKE '%$target_date%'";
+                            $res_ganancia_def = mysqli_query($conexion, $sql_ganancia_def);
+                            $ganancia_row_def = $res_ganancia_def ? mysqli_fetch_assoc($res_ganancia_def) : null;
+                            $ganancia_val_def = $ganancia_row_def && isset($ganancia_row_def['ganancia_real_diaria_usd']) ? floatval($ganancia_row_def['ganancia_real_diaria_usd']) : 0;
+                          ?>
+
+                          <!--<div class="ganancia">
+                            <h3>Ganancia: <?php //echo str_replace('.', ',', number_format($ganancia_val_def, 2)); ?>$</h3>
+                          </div>
+                           Tarjeta resumen semanal -->
+                          <?php if (!isset($_POST['date']) || empty($_POST['date'])): ?>
+                            <div class="weekly-card">
+                              <h4>Resumen Semanal (Lun - Sáb)</h4>
+                              <div class="weekly-amount">
+                                <?php $weekly_val = isset($_SESSION['weekly_gain']) ? floatval($_SESSION['weekly_gain']) : 0.0; ?>
+                                <span class="weekly-number"><?php echo str_replace('.', ',', number_format($weekly_val, 2)); ?></span>$
+                              </div>
+                              <div class="weekly-note">Semana: <?php echo isset($_SESSION['weekly_gain_week']) ? $_SESSION['weekly_gain_week'] : date('oW'); ?></div>
+                            </div>
+                          <?php endif; ?>
+                          <?php if (isset($_POST['date']) && !empty($_POST['date'])): ?>
+                            <!-- Mostrar ganancia para la fecha buscada con estilo de tarjeta semanal -->
+                            <div class="weekly-card">
+                              <h4>Ganancia para: <?php echo htmlspecialchars($_POST['date']); ?></h4>
+                              <div class="weekly-amount">
+                                <span class="weekly-number"><?php echo str_replace('.', ',', number_format(floatval($ganancia_val), 2)); ?></span>$
+                              </div>
+                              <div class="weekly-note">Resultados filtrados por fecha</div>
+                            </div>
+                          <?php endif; ?>
                       </div>
                       <?php
                         }
@@ -243,18 +347,63 @@
                               $resultado_total = mysqli_query($conexion, $sql_total);
                               $row_total = mysqli_fetch_assoc($resultado_total);
                               $total_dolares = number_format($row_total['total_dolares'], 2);
+
+                              // Ganancia real diaria en USD: sumar (ganancia unitaria * cantidad) para las compras relacionadas a ventas del día
+            $sql_ganancia = "SELECT COALESCE(SUM(c.ganancia_unidad_vendida * c.cantidad_producto), 0) AS ganancia_real_diaria_usd
+              FROM ventas v
+              JOIN compra c ON v.id_compra = c.id_compra
+              WHERE v.fecha LIKE '%$date%'";
+                              $res_ganancia = mysqli_query($conexion, $sql_ganancia);
+                              $ganancia_row = $res_ganancia ? mysqli_fetch_assoc($res_ganancia) : null;
+                              $ganancia_val = $ganancia_row && isset($ganancia_row['ganancia_real_diaria_usd']) ? floatval($ganancia_row['ganancia_real_diaria_usd']) : 0;
                             ?>
                             <tr>
                               <?php $total_dolares_val = isset($row_total['total_dolares']) ? floatval($row_total['total_dolares']) : 0; ?>
                               <td colspan="1" class="cart-total"><h3>Total: <?php echo str_replace('.', ',', number_format($total_dolares_val, 2)); ?>$</h3></td>
-                              <!-- ...Limite el numero de decimales a 2... -->
                             </tr>
                             </tfoot>
                           </table>
+                          <?php
+                            // Ganancia real diaria en USD para la fecha actual
+                            $sql_ganancia_def = "SELECT COALESCE(SUM(c.ganancia_unidad_vendida * c.cantidad_producto), 0) AS ganancia_real_diaria_usd
+                                                  FROM ventas v
+                                                  JOIN compra c ON v.id_compra = c.id_compra
+                                                  WHERE v.fecha = '$fecha'";
+                            $res_ganancia_def = mysqli_query($conexion, $sql_ganancia_def);
+                            $ganancia_row_def = $res_ganancia_def ? mysqli_fetch_assoc($res_ganancia_def) : null;
+                            $ganancia_val_def = $ganancia_row_def && isset($ganancia_row_def['ganancia_real_diaria_usd']) ? floatval($ganancia_row_def['ganancia_real_diaria_usd']) : 0;
+                          ?>
+
+                          <!--<div class="ganancia">
+                            <h3>Ganancia: <?php //echo str_replace('.', ',', number_format($ganancia_val_def, 2)); ?>$</h3>
+                          </div>
+                           Tarjeta resumen semanal -->
+                          <?php if (!isset($_POST['date']) || empty($_POST['date'])): ?>
+                            <div class="weekly-card">
+                              <h4>Resumen Semanal (Lun - Sáb)</h4>
+                              <div class="weekly-amount">
+                                <?php $weekly_val = isset($_SESSION['weekly_gain']) ? floatval($_SESSION['weekly_gain']) : 0.0; ?>
+                                <span class="weekly-number"><?php echo str_replace('.', ',', number_format($weekly_val, 2)); ?></span>$
+                              </div>
+                              <div class="weekly-note">Semana: <?php echo isset($_SESSION['weekly_gain_week']) ? $_SESSION['weekly_gain_week'] : date('oW'); ?></div>
+                            </div>
+                          <?php endif; ?>
+                          <?php if (isset($_POST['date']) && !empty($_POST['date'])): ?>
+                            <!-- Mostrar la ganancia de la fecha buscada con estilos de tarjeta -->
+                            <div class="weekly-card">
+                              <h4>Ganancia para: <?php echo htmlspecialchars($_POST['date']); ?></h4>
+                              <div class="weekly-amount">
+                                <span class="weekly-number"><?php echo str_replace('.', ',', number_format(floatval($ganancia_val), 2)); ?></span>$
+                              </div>
+                              <div class="weekly-note">Resultados filtrados por fecha</div>
+                            </div>
+                          <?php endif; ?>
+                          
                       </div>
                       <?php
                         }
                       ?>
+
                       <button type="button" id="btnAvance">Hacer Avances <i class="fa-solid fa-money-bill-1-wave"></i></button>
                     </div>
                 </div>
