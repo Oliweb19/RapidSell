@@ -8,7 +8,7 @@
     $bultos = $_POST['bultos'];
     $precio = $_POST['precio'];
     $porcentaje = $_POST['porcentaje'];
-    $stock = $_POST['stock'];
+    $stock = $unidades * $bultos;
 
     // Calcular el costo por unidad
     $costo_bulto = floatval($precio);

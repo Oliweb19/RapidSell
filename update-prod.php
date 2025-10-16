@@ -102,7 +102,7 @@
                             </div>
                             <div>
                                 <label for="precio">Precio del bulto ($): </label>
-                                <input type="text" name="precio" id="precio" value="<?php echo $mostrar['precio']; ?>">
+                                <input type="text" name="precio" id="precio" >
                             </div>
                             <div>
                                 <label for="porcentaje">Porcentaje de ganancia (%): </label>
