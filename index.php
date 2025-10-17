@@ -480,6 +480,24 @@ document.getElementById('formAvance').oninput = function() {
     alert('Error de conexión al registrar el avance.');
   });
 };*/
+
+// Validación simple de fecha DD/MM/YYYY si se usa el campo opcional
+function validarFechaDMY(str) {
+  if (!str) return true; // opcional
+  const re = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(\d{4})$/;
+  return re.test(str);
+}
+
+// Si se usa el formulario (no AJAX), hacer pre-validación antes de submit
+document.getElementById('formAvance').addEventListener('submit', function(e) {
+  const fechaVal = document.getElementById('fechaAvance').value.trim();
+  if (fechaVal && !validarFechaDMY(fechaVal)) {
+    e.preventDefault();
+    alert('Formato de fecha inválido. Use DD/MM/AAAA.');
+    return false;
+  }
+  return true;
+});
 </script>
 <script>
 // Mostrar el modal al hacer clic en el botón

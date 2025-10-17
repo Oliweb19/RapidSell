@@ -7,7 +7,25 @@ $monto_bs = isset($_POST['montoAvance']) ? floatval($_POST['montoAvance']) : 0;
 $metodo = isset($_POST['metodoPago']) ? $_POST['metodoPago'] : '';
 $porcentaje = isset($_POST['porcentajeGanancia']) ? floatval($_POST['porcentajeGanancia']) : 0;
 $dolar = isset($_SESSION['dolar']) ? floatval($_SESSION['dolar']) : 0;
+
+// Helper: validar fecha en formato d/m/Y
+function valid_date_dmY($date_str) {
+    $d = DateTime::createFromFormat('d/m/Y', $date_str);
+    return $d && $d->format('d/m/Y') === $date_str;
+}
+
+// Permitir fecha opcional enviada desde el formulario: 'fechaAvance' (formato d/m/Y)
 $fecha = date('d/m/Y');
+if (isset($_POST['fechaAvance']) && !empty(trim($_POST['fechaAvance']))) {
+    $candidate = trim($_POST['fechaAvance']);
+    if (valid_date_dmY($candidate)) {
+        $fecha = $candidate;
+    } else {
+        // Si la fecha enviada es inválida, responder error para que el cliente lo corrija
+        echo json_encode(['success' => false, 'error' => 'Formato de fecha inválido. Use DD/MM/AAAA.']);
+        exit;
+    }
+}
 $total_bs = $monto_bs + ($monto_bs * $porcentaje / 100);
 $total_dolar = $dolar > 0 ? round($total_bs / $dolar, 2) : 0;
 
