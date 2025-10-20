@@ -108,11 +108,6 @@
                                 <label for="porcentaje">Porcentaje de ganancia (%): </label>
                                 <input type="number" name="porcentaje" id="porcentaje" min="0" step="0.01" value="">
                             </div>
-                            <!-- Cuadro visual de stock y ganancia -->
-                            <div id="calcResumen" style="margin:15px 0; padding:12px; background:#f7fafc; border-radius:8px; border:1px solid #e6eef6;">
-                                <strong>Stock calculado:</strong> <span id="stockCalculado">0</span><br>
-                                <strong>Ganancia estimada ($):</strong> <span id="gananciaCalculada">0.00</span>
-                            </div>
                             <button type="submit">Modificar</button>
                         </form>
                     </div>
@@ -120,32 +115,6 @@
             </div>
         </div>
     </div>
-    <script>
-    function calcularResumen() {
-        const unidades = parseFloat(document.getElementById('unidades').value) || 0;
-        const bultos = parseFloat(document.getElementById('bultos').value) || 0;
-        const precio = parseFloat(document.getElementById('precio').value) || 0;
-        const porcentaje = parseFloat(document.getElementById('porcentaje').value) || 0;
-        const stock = unidades * bultos;
-        document.getElementById('stockCalculado').textContent = stock;
-        // Calculo de ganancia igual que en PHP
-        if (unidades > 0 && bultos > 0 && precio > 0) {
-            const costo_bulto = precio;
-            const porcentaje_ganancia = porcentaje / 100;
-            const costo_unidad = costo_bulto / unidades;
-            const precio_venta_unidad = costo_unidad / (1 - porcentaje_ganancia);
-            const ganancia_unidad = precio_venta_unidad - costo_unidad;
-            const ganancia_total = ganancia_unidad * unidades * bultos;
-            document.getElementById('gananciaCalculada').textContent = ganancia_total.toFixed(2);
-        } else {
-            document.getElementById('gananciaCalculada').textContent = '0.00';
-        }
-    }
-    document.getElementById('unidades').addEventListener('input', calcularResumen);
-    document.getElementById('bultos').addEventListener('input', calcularResumen);
-    document.getElementById('precio').addEventListener('input', calcularResumen);
-    document.getElementById('porcentaje').addEventListener('input', calcularResumen);
-    window.addEventListener('DOMContentLoaded', calcularResumen);
-    </script>
+    
 </body>
 </html>

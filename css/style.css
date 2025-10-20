@@ -413,8 +413,9 @@ tr:hover{
 /*--- Update ---*/
 .update{
     width: 80%;
-    height: 600px;
+    height: 550px;
     margin-top: 3%;
+    margin-bottom: 3%;
     margin-left: 10%;
     margin-right: 10%;
     border-left: 1px solid #031b46;

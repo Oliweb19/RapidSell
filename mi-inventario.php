@@ -158,6 +158,7 @@
                         <th>Producto</th> 
                         <th>Precio $</th>
                         <th>Precio Bs</th>
+                        <th>Ganancia</th>
                         <th>Stock</th>
                         <th>Acciones</th>
                       </tr>
@@ -166,7 +167,7 @@
                       $prod = $_POST['producto'];
                         
                       $sql = "SELECT * FROM productos 
-                      WHERE nombre_producto LIKE '%$prod%'
+                      WHERE nombre_producto LIKE '%$prod%' OR cerial LIKE '%$prod%'
                       AND estatus = 1";
                       $resultado = mysqli_query($conexion,$sql); 
 
@@ -178,6 +179,7 @@
                         <td><?php echo $mostrar['nombre_producto']; ?></td>
                         <td><?php echo $mostrar['precio']; ?>$</td>
                         <td>Bs. <?php echo $mostrar['precio_bs']; ?></td>
+                        <td><?php echo $mostrar['ganancia']; ?>$</td>
                         <td><?php echo $mostrar['stock']; ?></td>
                         <td>
                           <a href="update-prod.php?id=<?php echo $mostrar['id_producto']; ?>" id="pen"><i class="fa-solid fa-pen"></i> </a>
