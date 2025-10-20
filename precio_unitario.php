@@ -50,8 +50,10 @@ if ($result_compras->num_rows > 0) {
             
             if ($stmt->execute()) {
                 echo "Registro #{$compra_id}: Ganancia unitaria calculada en " . number_format($ganancia_por_unidad, 2) . " y actualizada.\n";
+                header("Location: venta.php");
             } else {
                 echo "Error al actualizar registro #{$compra_id}: " . $stmt->error . "\n";
+                header("Location: venta.php");
             }
             $stmt->close();
 
@@ -61,8 +63,8 @@ if ($result_compras->num_rows > 0) {
     }
 } else {
     echo "No se encontraron registros en la tabla 'compra' para actualizar.\n";
+    header("Location: venta.php");
 }
 
 $conn->close();
-header("Location: venta.php");
 ?>
