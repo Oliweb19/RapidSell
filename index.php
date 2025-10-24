@@ -156,6 +156,8 @@
                 <h3>
                   <?php
                     $fecha = date("d/m/Y"); 
+                    // Si enviaron una fecha por POST la usamos, si no usamos la fecha de hoy
+                    $date = (isset($_POST['date']) && !empty(trim($_POST['date']))) ? trim($_POST['date']) : $fecha;
                     $dias = array(
                       'Monday' => 'Lunes',
                       'Tuesday' => 'Martes',
@@ -173,7 +175,24 @@
             </div>
             <div class="cont-bars">
                 <div class="bars-products">
-                    <h2>Productos que estan por acabarse</h2> 
+                    <h2>Productos que estan por acabarse</h2>
+                    <?php
+                      // Paginador
+                      $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+                      $por_pagina = 5;
+                      $inicio = ($pagina - 1) * $por_pagina;
+
+                      // Contar total de productos
+                      $sql_total = "SELECT COUNT(*) as total FROM productos WHERE stock <= 5 AND estatus = 1";
+                      $res_total = mysqli_query($conexion, $sql_total);
+                      $row_total = mysqli_fetch_assoc($res_total);
+                      $total_productos = $row_total['total'];
+                      $total_paginas = ceil($total_productos / $por_pagina);
+
+                      // Obtener productos de la página actual
+                      $sql = "SELECT * FROM productos WHERE stock <= 5 AND estatus = 1 LIMIT $inicio, $por_pagina";
+                      $resultado = mysqli_query($conexion, $sql);
+                    ?> 
                     <table class="index-tabla">
                         <thead>
                           <tr>
@@ -183,8 +202,8 @@
                           </tr>
                         </thead>
                         <?php 
-                          $sql = "SELECT * FROM productos WHERE stock <= 5 AND estatus = 1";
-                          $resultado = mysqli_query($conexion,$sql);
+                          /*$sql = "SELECT * FROM productos WHERE stock <= 5 AND estatus = 1";
+                          $resultado = mysqli_query($conexion,$sql);*/
 
                           while($mostrar = mysqli_fetch_array($resultado)){ 
                         ?>
@@ -199,6 +218,19 @@
                           }
                         ?>
                       </table>
+                      <div style="margin-top:20px; text-align:center;">
+                        <?php if($pagina > 1){ ?>
+                          <a href="?pagina=<?php echo $pagina-1; ?>" class="btn-paginador" title="Anterior">
+                            <i class="fa-solid fa-chevron-left paginador-flecha"></i>
+                          </a>
+                        <?php } ?>
+                        <span style="margin:0 10px;">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></span>
+                        <?php if($pagina < $total_paginas){ ?>
+                          <a href="?pagina=<?php echo $pagina+1; ?>" class="btn-paginador" title="Siguiente">
+                            <i class="fa-solid fa-chevron-right paginador-flecha"></i>
+                          </a>
+                        <?php } ?>
+                      </div>
                 </div>
                 <div class="cont-2div">
                     <div class="bars-comprador">
@@ -320,7 +352,6 @@
                               </tr>
                             </thead>
                             <?php 
-                              $date = $_POST['date'];
 
                               $sql = "SELECT SUM(total_pagar), metodo_pago, fecha FROM ventas 
                               WHERE fecha LIKE '%$date%' 
