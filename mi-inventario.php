@@ -166,8 +166,9 @@
                     <?php 
                       $prod = $_POST['producto'];
                         
+                      // Asegurar que el filtro de estatus se aplique a toda la condición de búsqueda
                       $sql = "SELECT * FROM productos 
-                      WHERE nombre_producto LIKE '%$prod%' OR cerial LIKE '%$prod%'
+                      WHERE (nombre_producto LIKE '%$prod%' OR cerial LIKE '%$prod%')
                       AND estatus = 1";
                       $resultado = mysqli_query($conexion,$sql); 
 
